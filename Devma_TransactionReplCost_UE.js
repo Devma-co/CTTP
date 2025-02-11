@@ -57,7 +57,7 @@ define(['N/record', 'N/log', 'N/search'], function (record, log, search) {
                     // Fetch base price from the item record
                     var basePrice = getBasePrice(itemId);
                     log.debug('basePrice',basePrice)
-
+					
       
                     // Set the calculated value to the line-level field
                     newRecord.setSublistValue({
@@ -70,9 +70,13 @@ define(['N/record', 'N/log', 'N/search'], function (record, log, search) {
                    // If Credit Memo is created from an Invoice, inherit the line values
                 if (transactionType === 'creditmemo') {
                     var createdFrom = newRecord.getValue({ fieldId: 'createdfrom' });
-                    if (createdFrom) {
+                    if (createdFrom != null && createdFrom != '') {
+                     var tranType = getTransactionType(createdFrom)
+                      tranType = getTranType(tranType)
+                      log.debug('tranType',tranType)
+                      if(tranType == 'invoice'){
                         var parentInvoice = record.load({
-                            type: record.Type.INVOICE,
+                            type: tranType,
                             id: createdFrom
                         });
 
@@ -94,6 +98,7 @@ define(['N/record', 'N/log', 'N/search'], function (record, log, search) {
                                 });
                             }
                         }
+                      }
                     }
                 }
             }
@@ -135,6 +140,80 @@ define(['N/record', 'N/log', 'N/search'], function (record, log, search) {
         }
         return 0;
     }
+  function getTransactionType(transactionId) {
+        try {
+            var result = search.lookupFields({
+                type: search.Type.TRANSACTION,
+                id: transactionId,
+                columns: ['type']
+            });
+
+            return result.type[0].value; // Returns the transaction type (e.g., "SalesOrd", "InvAdjst")
+        } catch (error) {
+            log.error('Error fetching transaction type', error);
+            return null;
+        }
+    }
+  function getTranType(trantype){
+	   var transaction = '';
+	   if(trantype == 'CustInvc')
+	   transaction = 'invoice';
+	   if(trantype == 'SalesOrd')
+	    transaction = 'salesorder';
+	   if(trantype == 'VendBill')
+	    transaction = 'vendorbill';
+	   if(trantype == 'VendCred')
+	    transaction = 'billcredit';
+	   if(trantype == 'CustCred')
+	    transaction = 'creditmemo';
+	   if(trantype == 'CashSale')
+	    transaction = 'cashsale';
+	   if(trantype == 'InvAdjst')
+	    transaction = 'inventoryadjustment';
+	     if(trantype == 'ItemRcpt')
+	    transaction = 'itemreceipt';
+	    if(trantype == 'Journal')
+	    transaction = 'journal';
+	    if(trantype == 'Opprtnty')
+	    transaction = 'opportunity';
+	    if(trantype == 'LiaAdjst')
+	    transaction = 'laibilityadjustment';
+	    if(trantype == 'ExpRept')
+	    transaction = 'expensereport';
+	    if(trantype == 'CustPymt')
+	    transaction = 'customerpayment';
+	    if(trantype == 'Deposit')
+	    transaction = 'deposit';
+	    if(trantype == 'CardChrg')
+	    transaction = 'creditcard';
+	    if(trantype == 'ItemShip')
+	    transaction = 'itemfulfillment';
+	    if(trantype == 'CustDep')
+	    transaction = 'customerdeposit';
+	    if(trantype == 'PurchOrd')
+	    transaction = 'purchaseorder';
+	    if(trantype == 'InvTrnfr')
+	    transaction = 'inventorytransfer';
+	    if(trantype == 'WorkOrd')
+	    transaction = 'workorder';
+	    if(trantype == 'Build')
+	    transaction = 'assemblybuild';
+	    if(trantype == 'FxReval')
+	    transaction = 'currencyrevaluation';
+	    if(trantype == 'VendAuth')
+	    transaction = 'vendorreturnauthorization';
+	    if(trantype == 'Estimate')
+	    transaction = 'estimate';
+	    if(trantype == 'Commissn')
+	    transaction = 'commission';
+	    if(trantype == 'TrnfrOrd')
+	    transaction = 'transfer';
+	    if(trantype == 'BinWksht')
+	    transaction = 'binputawayworkSheet';
+	   if(trantype == '')
+	   transaction = '';
+	   return transaction;
+	 }
 
     return {
         beforeLoad: beforeLoad,
